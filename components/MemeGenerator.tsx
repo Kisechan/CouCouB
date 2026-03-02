@@ -21,7 +21,7 @@ const CANVAS_SIZE: Record<Style, [number, number]> = {
   2: [900, 400],
   3: [1080, 700],
   4: [1200, 640],
-  "环形多头": [900, 900],
+  "环形多头": [900, 1000],
 };
 
 const DEFAULT_TEXTS: Record<Style, string[]> = {
@@ -154,7 +154,7 @@ function drawStyle2(ctx: CanvasRenderingContext2D, w: number, h: number, imgs: I
   ([imgs.right, imgs.left, imgs.middle] as HTMLImageElement[]).forEach((img, i) => {
     const cx = colW * i + colW / 2;
     const txt = texts[i] || DEFAULT_TEXTS[2][i];
-    wrapText(ctx, txt, cx, 12, colW - PAD * 2, 21);
+    wrapText(ctx, txt, cx, 12, colW - PAD * 2, 30);
     drawArrow(ctx, cx, textH + 2, 20);
     drawImg(ctx, img, colW * i + PAD, imgY + 4, colW - PAD * 2, imgH, true);
   });
@@ -300,32 +300,11 @@ function drawStyleRing(
 
     // 绘制文字
     const txt = texts[i] || "";
-    ctx.font = `bold 18px ${FONT}`;
-    ctx.fillStyle = "#000";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
     
-    // 简单换行处理
+    // 使用 wrapText 自动处理字号缩小和换行
+    // 预估高度约为 40px，所以在 -20px 处开始绘制以大致垂直居中
     const maxWidth = imgSize * 1.5;
-    const words = [...txt];
-    let line = "";
-    const lines: string[] = [];
-    for (const char of words) {
-      const testLine = line + char;
-      if (ctx.measureText(testLine).width > maxWidth && line) {
-        lines.push(line);
-        line = char;
-      } else {
-        line = testLine;
-      }
-    }
-    if (line) lines.push(line);
-
-    const lineHeight = 22;
-    const totalHeight = lines.length * lineHeight;
-    lines.forEach((l, idx) => {
-      ctx.fillText(l, 0, -totalHeight / 2 + idx * lineHeight + lineHeight / 2);
-    });
+    wrapText(ctx, txt, 0, -20, maxWidth, 24);
 
     ctx.restore();
 
@@ -354,7 +333,7 @@ function drawStyleRing(
     ctx.fillStyle = "#000";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    wrapText(ctx, centerText, cx, cy - centerImgSize / 2 - 20, centerImgSize * 2, 24);
+    wrapText(ctx, centerText, cx, cy - centerImgSize / 2 - 30, centerImgSize * 2, 40);
   }
 }
 
@@ -366,7 +345,7 @@ export default function MemeGenerator() {
   const [style, setStyle] = useState<Style>(2);
   const [texts, setTexts] = useState<string[]>(new Array(DEFAULT_TEXTS[2].length).fill(""));
   const [ready, setReady] = useState(false);
-  const [ringCount, setRingCount] = useState(4); // 环形模式的头数量
+  const [ringCount, setRingCount] = useState(6); // 环形模式的头数量
 
   // Load images once
   useEffect(() => {
